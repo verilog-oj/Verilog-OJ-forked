@@ -3,7 +3,7 @@
     <el-form :model="form" @keyup.native.enter="loginClick">
       <el-row :gutter="10">
         <el-col :span="3">
-          <div style="text-align: center; margin: 5px">User</div>
+          <div style="text-align: center; margin: 5px">用户名</div>
         </el-col>
         <el-col :span="12">
           <el-input
@@ -15,7 +15,7 @@
       </el-row>
       <el-row :gutter="10">
         <el-col :span="3">
-          <div style="text-align: center; margin: 5px">Password</div>
+          <div style="text-align: center; margin: 5px">密码</div>
         </el-col>
         <el-col :span="12">
           <el-input
@@ -27,9 +27,8 @@
       </el-row>
     </el-form>
     <div slot="footer" class="dialog-footer">
-      <el-button @click="casLoginClick()" small>统一身份认证登陆</el-button>
-      <el-button @click="dialogLoginVisible = false">Cancel</el-button>
-      <el-button type="primary" @click="loginClick">OK</el-button>
+      <el-button @click="dialogLoginVisible = false">取消</el-button>
+      <el-button type="primary" @click="loginClick">确定</el-button>
     </div>
   </el-dialog>
 </template>
@@ -72,9 +71,6 @@ export default {
           else this.$message.error("抱歉，似乎出了点问题");
         },
       });
-    },
-    casLoginClick() {
-      window.location.href = process.env.VUE_APP_API_ROOT + "/user/ustc-login";
     },
   },
 };

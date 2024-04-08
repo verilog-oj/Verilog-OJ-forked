@@ -1,6 +1,15 @@
 <template>
   <div>
     <el-row> </el-row>
+    <el-row>
+      <el-col :xs="0" :sm="2" :md="4" :lg="6" :xl="6" class="placeholder">
+        <!-- placeholder only -->
+        &nbsp;
+      </el-col>
+      <el-col :xs="24" :sm="20" :md="16" :lg="12" :xl="12">
+        <welcomemessage></welcomemessage>
+      </el-col>
+    </el-row>
     <el-row :gutter="12">
       <el-col :xs="0" :sm="2" :md="4" :lg="6" :xl="6" class="placeholder">
         <!-- placeholder only -->
@@ -21,15 +30,7 @@
         </el-row>
       </el-col>
     </el-row>
-    <el-row>
-      <el-col :xs="0" :sm="2" :md="4" :lg="6" :xl="6" class="placeholder">
-        <!-- placeholder only -->
-        &nbsp;
-      </el-col>
-      <el-col :xs="24" :sm="20" :md="16" :lg="12" :xl="12">
-        <welcomemessage></welcomemessage>
-      </el-col>
-    </el-row>
+    
   </div>
 </template>
 
@@ -50,22 +51,9 @@ export default {
   },
   name: "homepage",
   data() {
-    return {
-      tables: [
-        { msg: "假装这里是新闻1" },
-        { msg: "假装这里是新闻2" },
-        { msg: "假装这里是新闻3" },
-      ],
-    };
+    return {};
   },
-  created() {
-    //这里后端无接口，可以后期加上（画饼
-    /*
-    this.$axios.get("/banner/").then(response => {
-      this.tables = response.data;
-    });
-    */
-  },
+  created() {},
 };
 </script>
 

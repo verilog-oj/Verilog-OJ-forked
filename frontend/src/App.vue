@@ -8,22 +8,22 @@
     >
       <el-menu-item index="/" id="title">{{ school }}</el-menu-item>
       <el-menu-item index="/">
-        <i class="el-icon-star-off"></i>Home</el-menu-item
+        <i class="el-icon-star-off"></i>主页</el-menu-item
       >
       <el-menu-item index="/problempage/1">
-        <i class="el-icon-menu"></i>Problem</el-menu-item
+        <i class="el-icon-menu"></i>题目</el-menu-item
       >
       <el-menu-item index="/statue">
-        <i class="el-icon-tickets"></i>Status</el-menu-item
+        <i class="el-icon-tickets"></i>状态</el-menu-item
       >
       <!-- <el-menu-item index="/contest">
         <i class="el-icon-bell"></i>Contest</el-menu-item> -->
 
       <el-button round id="button" @click="registeropen" v-show="!loggedIn"
-        >Register</el-button
+        >注册</el-button
       >
       <el-button round id="button" @click="loginopen" v-show="!loggedIn"
-        >Login</el-button
+        >登录</el-button
       >
 
       <el-dropdown
@@ -36,14 +36,14 @@
       >
         <span class="el-dropdown-link">Welcome, {{ username }}</span>
         <el-dropdown-menu slot="dropdown">
-          <el-dropdown-item command="home">Home</el-dropdown-item>
+          <el-dropdown-item command="home">个人主页</el-dropdown-item>
           <!-- <el-dropdown-item command="submittion">Submittion</el-dropdown-item> -->
-          <el-dropdown-item command="setting">Setting</el-dropdown-item>
-          <!-- <el-dropdown-item command="classes" divided>Class</el-dropdown-item> -->
+          <el-dropdown-item command="setting">设置</el-dropdown-item>
+          <!-- <el-dropdown-item command="classes" divided>班级</el-dropdown-item> -->
           <el-dropdown-item command="admin" divided v-show="isSuperUser"
-            >Admin</el-dropdown-item
+            >管理</el-dropdown-item
           >
-          <el-dropdown-item command="logout" divided>Logout</el-dropdown-item>
+          <el-dropdown-item command="logout" divided>注销</el-dropdown-item>
         </el-dropdown-menu>
       </el-dropdown>
     </el-menu>
@@ -75,12 +75,15 @@
     </transition>
     <!-- >  主体<-->
     <div class="footer">
-      Verilog OJ 测试版, 本项目得到了中国科学技术大学 VLab 实验平台的帮助和支持
+      Copyright © 2022-{{ currentYear }} verilog.fun. Powered by <a href="https://github.com/YAVGroup/Verilog-OJ" target="_blank">Verilog-OJ</a>.
+            遵守 AGPLv3 许可证开放<a href="https://github.com/verilog-oj/Verilog-OJ-forked" target="_blank">源码</a>
     </div>
   </div>
 </template>
 
 <script>
+
+
 import Cookies from "js-cookie";
 import { mapState } from "vuex";
 
@@ -92,11 +95,15 @@ export default {
   },
   data() {
     return {
-      school: "USTC",
+      school: "UCAS",
+      currentYear: 2024,
     };
   },
   computed: mapState(["loggedIn", "userID", "username", "isSuperUser"]),
   methods: {
+    year() {
+      return this.currentYear ? this.currentYear.getFullYear() : 2024;
+    },
     loginopen() {
       this.$refs.logindialog.open();
     },
@@ -108,6 +115,10 @@ export default {
         name: "user",
         params: { userid: this.userID },
       });
+    },
+    getCurrentYear() {
+      const date = new Date();
+      this.currentYear = date;
     },
     handleCommand(command) {
       if (command == "logout") {
@@ -137,22 +148,11 @@ export default {
           params: { username: this.username },
         });
       }
-      // if (command == "submittion") {
-      //   this.$router.push({
-      //     name: "statue",
-      //     query: { username: sessionStorage.username }
-      //   });
-      // }
       if (command == "admin") {
         this.$router.push({
           name: "admin",
         });
       }
-      // if (command == "classes") {
-      //   this.$router.push({
-      //     name: "classes"
-      //   });
-      // }
     },
   },
 };
