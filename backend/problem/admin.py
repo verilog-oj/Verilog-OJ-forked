@@ -1,3 +1,4 @@
+import json
 from django.contrib import admin
 from .models import Problem, TestCase
 from file.models import File
@@ -8,7 +9,7 @@ from django.db import transaction
 import django.core.files
 from django.http import HttpResponse
 import yaml
-
+from urllib.parse import quote
 class TestCaseInline(admin.StackedInline):
     model = TestCase
     extra = 0
@@ -20,6 +21,7 @@ class ProblemAdmin(admin.ModelAdmin):
     ]
     change_list_template = ['admin/custom_change_list.html']
     actions = ['export_yaml', 'export_binary_yaml']
+    # export yaml make .yaml download
 
     def total_grade(self, obj):
         return obj.get_total_grade()
@@ -56,12 +58,25 @@ class ProblemAdmin(admin.ModelAdmin):
                         read_file_into_info((f_inst))
                     )
             return info
-
+        # yaml_file_name, if there is only one problem, use its name, and if there are more than one problem, use the first problem's name and add "等" at the end
+        yaml_file_name = ""
+        if len(queryset) == 1:
+            yaml_file_name = queryset[0].name
+        else:
+            yaml_file_name = queryset[0].name + "等"
+        
         for prob_inst in queryset:
             prob = {}
+            # logic_id, name, level, tags, description, description_input, description_output, app_data, description_files,
+            # judge_files, template_code_file, testcases
             prob["name"] = prob_inst.name
+            prob["logic_id"] = prob_inst.logic_id
+            prob["level"] = prob_inst.level
+            prob["tags"] = prob_inst.tags
             prob["description"] = prob_inst.description
             prob["description_input"] = prob_inst.description_input
+            prob["description_output"] = prob_inst.description_output
+
             prob["app_data"] = prob_inst.app_data
             
             res_d = prob_inst.description_files.all()
@@ -102,8 +117,18 @@ class ProblemAdmin(admin.ModelAdmin):
                 return self.represent_scalar('tag:yaml.org,2002:str', data)
 
         CustomDumper.add_representer(str, CustomDumper.str_presenter)
+        # return a file download response
 
-        response = HttpResponse(content_type="text/plain")
+        real_ip = request.META.get('HTTP_X_FORWARDED_FOR')
+        
+        # If the header is not present, fall back to the REMOTE_ADDR header,
+        # which should contain the user's IP address.
+        if not real_ip:
+            real_ip = request.META.get('REMOTE_ADDR')
+        print("Exporting problems to Yaml by user: {} with IP: {}".format(request.user, real_ip))
+        response = HttpResponse(content_type='application/yaml')
+        response['Content-Disposition'] = f'attachment; filename*=utf-8\'\'{quote(yaml_file_name)}.yaml'
+
         response.write(yaml.dump(
             res, 
             default_flow_style=False,
@@ -161,6 +186,10 @@ class ProblemAdmin(admin.ModelAdmin):
 
                 ys_prob = ys['problems'][i]
                 problem_info['name'] = ys_prob['name']
+                # if there is empty of logic_id, tags, level, using "" instead
+                problem_info['logic_id'] = ys_prob['logic_id']
+                problem_info['level'] = ys_prob['level']
+                problem_info['tags'] = ys_prob['tags']
                 problem_info['description'] = ys_prob['description']
                 problem_info['description_input'] = ys_prob['description_input']
                 problem_info['description_output'] = ys_prob['description_output']
@@ -171,7 +200,7 @@ class ProblemAdmin(admin.ModelAdmin):
                 problem_info['judge_files'] = read_optionals('judge_files', read_file_info)
                 problem_info['testcases'] = read_optionals('testcases', read_testcase)
                 
-                log += str(problem_info)
+                # log += str(problem_info)
                 log += "\n"
             except:
                 log += "Error while retriving Problem #{}: {}\n".format(i, sys.exc_info()[1])
@@ -212,7 +241,10 @@ class ProblemAdmin(admin.ModelAdmin):
                     description=prob['description'],
                     description_input=prob['description_input'],
                     description_output=prob['description_output'],
-                    app_data="" if prob['app_data'] is None else prob['app_data']
+                    app_data="" if prob['app_data'] is None else prob['app_data'],
+                    level=prob['level'],
+                    logic_id=prob['logic_id'],
+                    tags=prob['tags']
                 )
 
                 if prob['template_code_file'] is not None:
@@ -246,11 +278,14 @@ class ProblemAdmin(admin.ModelAdmin):
         # TODO: avoid duplicate import
         stat_msg = ""
         if request.method == 'POST':
-            if 'yaml_context' not in request.POST:
+            if not request.FILES['yaml_context']:
                 stat_msg += "Error: yaml_context should be available in POST request"
             else:
                 stat_msg += "Processing begin\n"
-                log, success = self.import_yaml(request.POST['yaml_context'])
+                print(request.FILES)
+                file = request.FILES['yaml_context']
+
+                log, success = self.import_yaml(file.read().decode('utf-8'))
                 stat_msg += log
                 if not success:
                     stat_msg += "Operation failed.\n"
@@ -264,11 +299,12 @@ class ProblemAdmin(admin.ModelAdmin):
             status_message=stat_msg if stat_msg != "" else "No messages available."
         )
         return TemplateResponse(request, "admin/import_yaml.html", context)
-
+    
     def get_urls(self):
         urls = super().get_urls()
         my_urls = [
             path('import_yaml/', self.admin_site.admin_view(self.import_yaml_view)),
+            path('export_yaml/', self.admin_site.admin_view(self.export_yaml)),
         ]
         return my_urls + urls
 

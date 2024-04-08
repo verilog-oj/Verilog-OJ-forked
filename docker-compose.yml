@@ -1,22 +1,27 @@
 version: "3.7"
 
 services:
-  # public port 80, the only port exposed
   web:
     restart: always
+    # image: verilog-oj_web:latest
     build:
       context: ./frontend
       dockerfile: Dockerfile.nginx
       args:
         USE_NPM_MIRROR: "yes"
     ports:
-      - "80:80"
+      - "${web_port}:8080"
+      - "${web_ssl_port}:443"
     depends_on:
       - "backend"
+    # ssl
+    volumes:
+      - ${ssl_local_path}:/etc/nginx/ssl/
+      - ${nginx_web_conf_path}:/etc/nginx/conf.d/
   
   # api address on 0.0.0.0:8000
   backend:
-    restart: always
+    # image: verilog-oj_backend:latest
     build:
       context: ./backend
       dockerfile: Dockerfile.django
@@ -26,7 +31,7 @@ services:
         USE_MYSQL: "yes"
     environment:
       VERILOG_OJ_HOST_STATIC: "yes"
-      #VERILOG_OJ_PROD_DEBUG: "yes"
+      # VERILOG_OJ_PROD_DEBUG: "yes"
       VERILOG_OJ_JUDGER_SECRET: ${judger_secret}
       VERILOG_OJ_SECRET_KEY: ${secret_key}
       VERILOG_OJ_USE_MYSQL: "yes"
@@ -36,6 +41,7 @@ services:
       VERILOG_OJ_MYSQL_USER: django
       VERILOG_OJ_MYSQL_PASSWORD: ${mysql_password}
       VERILOG_OJ_PUBLIC_HOST: ${public_host}
+      VERILOG_OJ_PRIVATE_HOST: ${private_host}
       VERILOG_OJ_RABBITMQ_PASSWORD: ${rabbitmq_password}
       DOCKER_JUDGER_HOST_PATH: ${docker_judger_host_path}
       DOCKER_HOST_DIR: ${docker_host_dir}
@@ -78,6 +84,7 @@ services:
 
   judgeworker:
     restart: always
+    # image: verilog-oj_judgeworker:latest
     build:
       context: ./backend
       dockerfile: Dockerfile.judger
@@ -95,6 +102,7 @@ services:
       VERILOG_OJ_MYSQL_USER: django
       VERILOG_OJ_MYSQL_PASSWORD: ${mysql_password}
       VERILOG_OJ_PUBLIC_HOST: ${public_host}
+      VERILOG_OJ_PRIVATE_HOST: ${private_host}
       VERILOG_OJ_RABBITMQ_PASSWORD: ${rabbitmq_password}
       DOCKER_JUDGER_HOST_PATH: ${docker_judger_host_path}
       DOCKER_HOST_DIR: ${docker_host_dir}
@@ -109,5 +117,13 @@ services:
 volumes:
   db-volume:
     driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${db_volume}
   files-volume:
     driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${files_volume}

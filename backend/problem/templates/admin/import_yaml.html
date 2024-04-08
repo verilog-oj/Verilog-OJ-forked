@@ -9,9 +9,15 @@
 
 <h2>导入新的 Yaml</h2>
 
-<form action="." method="post">
+<form action="." method="post" enctype="multipart/form-data">
     {% csrf_token %}
-    <textarea name="yaml_context" cols="80" rows="15" class="vLargeTextField" required="">
+    <!-- file upload -->
+    <div class="form-row">
+        <label for="id_yaml_file">Yaml 文件:</label>
+        <input type="file" name="yaml_context" id="id_yaml_file" required="">
+    </div>
+
+    <!-- <textarea name="yaml_context" cols="80" rows="15" class="vLargeTextField" required="">
 # A example Yaml file is here
 problems:
   - name: The first problem
@@ -72,7 +78,7 @@ problems:
           // write your code here
         endmodule
     
-    </textarea>
+    </textarea> -->
     <div class="submit-row">
         <input type="submit" value="导入" class="default" style="float: left;">
     </div>

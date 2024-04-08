@@ -41,11 +41,15 @@ if 'VERILOG_OJ_PROD_DEBUG' in os.environ:
 if 'VERILOG_OJ_PUBLIC_HOST' not in os.environ:
     raise Exception("Verilog OJ should have VERILOG_OJ_PUBLIC_HOST passed by envvars")
 
+if 'VERILOG_OJ_PRIVATE_HOST' not in os.environ:
+    raise Exception("Verilog OJ should have VERILOG_OJ_PRIVATE_HOST passed by envvars")
+    
 ALLOWED_HOSTS = list(set([
     '127.0.0.1',
     'localhost',
     'backend',      # reference by hostname, used by judgeworker
-    os.environ['VERILOG_OJ_PUBLIC_HOST']
+    os.environ['VERILOG_OJ_PUBLIC_HOST'],
+    os.environ['VERILOG_OJ_PRIVATE_HOST']
 ]) | set(JUDGER_IP_WHITELIST))
 
 # ---- Judger configurations ----
